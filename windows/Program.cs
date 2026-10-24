@@ -203,8 +203,9 @@ sealed class PaletteForm : Form
         tray.Visible = true;
         var menu = new ContextMenuStrip();
         menu.Items.Add("Palette ein-/ausblenden   Strg+Alt+I", null, (_, _) => TogglePalette());
-        var autostart = new ToolStripMenuItem("Mit Windows starten") { Checked = Autostart };
-        autostart.Click += (_, _) => { Autostart = !Autostart; autostart.Checked = Autostart; };
+        var autostart = new ToolStripMenuItem("Mit Windows starten");
+        autostart.Click += async (_, _) => autostart.Checked = await SetAutostart(!autostart.Checked);
+        menu.Opening += async (_, _) => autostart.Checked = await GetAutostart();
         menu.Items.Add(autostart);
         menu.Items.Add(new ToolStripSeparator());
         menu.Items.Add("IPA-Palette beenden", null, (_, _) => { quitting = true; Close(); });
@@ -212,16 +213,40 @@ sealed class PaletteForm : Form
         tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) TogglePalette(); };
     }
 
+    // Autostart: als Store-Paket über die StartupTask aus dem Manifest, sonst über den Run-Schlüssel.
     const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-    static bool Autostart
+    const string StartupTaskId = "IPAPaletteStartup";
+
+    static bool IsPackaged
     {
-        get { using var k = Registry.CurrentUser.OpenSubKey(RunKey); return k?.GetValue("IPA-Palette") != null; }
-        set
+        get { try { return Windows.ApplicationModel.Package.Current != null; } catch { return false; } }
+    }
+
+    static async Task<bool> GetAutostart()
+    {
+        if (IsPackaged)
         {
-            using var k = Registry.CurrentUser.CreateSubKey(RunKey);
-            if (value) k.SetValue("IPA-Palette", $"\"{Environment.ProcessPath}\"");
+            var task = await Windows.ApplicationModel.StartupTask.GetAsync(StartupTaskId);
+            return task.State is Windows.ApplicationModel.StartupTaskState.Enabled or Windows.ApplicationModel.StartupTaskState.EnabledByPolicy;
+        }
+        using var k = Registry.CurrentUser.OpenSubKey(RunKey);
+        return k?.GetValue("IPA-Palette") != null;
+    }
+
+    static async Task<bool> SetAutostart(bool on)
+    {
+        if (IsPackaged)
+        {
+            var task = await Windows.ApplicationModel.StartupTask.GetAsync(StartupTaskId);
+            if (on) await task.RequestEnableAsync(); else task.Disable();
+            return await GetAutostart();
+        }
+        using (var k = Registry.CurrentUser.CreateSubKey(RunKey))
+        {
+            if (on) k.SetValue("IPA-Palette", $"\"{Environment.ProcessPath}\"");
             else k.DeleteValue("IPA-Palette", false);
         }
+        return on;
     }
 
     void TogglePalette()

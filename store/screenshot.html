@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="de"><head><meta charset="utf-8"><title>IPA-Palette Screenshot</title>
+<style>
+  @font-face { font-family: "IPA Palette Serif"; src: url("../fonts/ipa-palette-serif.woff2") format("woff2"); }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: linear-gradient(135deg, #dfe9ee, #f4f1ea); font-family: "Segoe UI", system-ui, sans-serif; }
+  .doc { position: absolute; left: 90px; top: 80px; width: 1240px; height: 920px; background: #fff; border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.18); overflow: hidden; }
+  .bar { height: 46px; background: #f3f3f3; border-bottom: 1px solid #ddd; display: flex; align-items: center; padding: 0 18px; color: #555; font-size: 15px; gap: 10px; }
+  .bar i { width: 12px; height: 12px; border-radius: 50%; background: #ccc; display: inline-block; }
+  .page { padding: 60px 110px; font-family: "Times New Roman", serif; font-size: 24px; line-height: 1.7; color: #222; }
+  .page h2 { font-size: 34px; margin: 0 0 24px; }
+  .ipa { font-family: "IPA Palette Serif", serif; }
+  .caret { display: inline-block; width: 2px; height: 28px; background: #1f6f8b; vertical-align: -5px; animation: none; }
+  .pal { position: absolute; right: 90px; top: 80px; width: 400px; height: 920px; border-radius: 10px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.25); background: #fff; }
+  .pal .t { height: 30px; background: #f3f3f3; border-bottom: 1px solid #ddd; font-size: 13px; color: #555; display: flex; align-items: center; padding-left: 12px; }
+  iframe { border: 0; width: 400px; height: 890px; }
+</style></head>
+<body>
+  <div class="doc"><div class="bar"><i></i><i></i><i></i>&nbsp; Hausübung Phonetik.docx</div>
+    <div class="page">
+      <h2>Auslautverhärtung</h2>
+      <p>Im Wortauslaut deutscher Wörter gibt es keine stimmhaften Konsonanten: <i>Hund</i> <span class="ipa">[hʊnt]</span>, <i>Tag</i> <span class="ipa">[taːk]</span>, <i>Bub</i> <span class="ipa">[buːp]</span>.</p>
+      <p>Im österreichischen Deutsch werden die Verschlusslaute entstimmlicht gesprochen: <i>Tag</i> <span class="ipa">[d̥aɡ̊]</span>, <i>Pannen</i> <span class="ipa">[b̥anən]</span>.</p>
+      <p>Der Ich-Laut <span class="ipa">[ç]</span> und der Ach-Laut <span class="ipa">[x]</span> sind Allophone des Phonems <span class="ipa">/x/</span>, geschrieben ‹ch›: <i>ich</i> <span class="ipa">[ɪç]</span>, <i>Buch</i> <span class="ipa">[buːx]</span>.</p>
+      <p><i>Schule</i> <span class="ipa">[ˈʃuːlə</span><span class="caret"></span></p>
+    </div>
+  </div>
+  <div class="pal"><div class="t">IPA-Palette</div><iframe id="f" src="../windows/web/taskpane.html" onload="var d=this.contentWindow.document;d.documentElement.setAttribute('data-mode','native');d.getElementById('notice').hidden=true;"></iframe></div>
+</body></html>
