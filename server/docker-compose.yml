@@ -1,0 +1,24 @@
+# Download-Seite der IPA-Palette, liegt auf dem Contabo unter /opt/ipa-palette.
+# Statischer Dateiserver; der zentrale Caddy (oramundi_caddy) leitet /ipa-palette* von
+# kph.wilckeworte.at und vs-lehrer.at hierher. Inhalte per scripts/veroeffentlichen.sh.
+services:
+  web:
+    image: caddy:2-alpine
+    container_name: ipa-palette
+    restart: unless-stopped
+    user: "65534:65534"
+    command: ["caddy", "file-server", "--root", "/srv", "--listen", ":8080"]
+    environment:
+      XDG_CONFIG_HOME: /tmp
+      XDG_DATA_HOME: /tmp
+    volumes:
+      - ./www:/srv:ro
+    tmpfs:
+      - /tmp
+    read_only: true
+    networks:
+      - kph_edge
+
+networks:
+  kph_edge:
+    external: true

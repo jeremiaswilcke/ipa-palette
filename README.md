@@ -17,6 +17,10 @@ Neben dem Word-Add-in gibt es die Palette als eigene App. Sie schwebt über alle
 
 Das Setup-Fenster ist gestaltet (Inno Setup 6.7: Hintergrund, Bild links, hell/dunkel); die Bilder entstehen mit `windows/installer/art/render.sh` aus `art.html`, der DMG-Hintergrund aus `mac/dmg/background.html`.
 
+**Eigene Download-Seite:** https://kph.wilckeworte.at/ipa-palette/ und https://vs-lehrer.at/ipa-palette/ (dieselbe Seite; Kurzform `/ipa`). Feste Links `…/ipa-palette/IPA-Palette.dmg` und `…/ipa-palette/IPA-Palette-Setup.exe` zeigen immer auf die neueste Version, dazu `palette/` (Browser-Palette) und `anleitung.pdf`. Quelle `web/download.html`; `scripts/veroeffentlichen.sh` lädt alles nach `/opt/ipa-palette` auf dem Contabo (Container `ipa-palette`, statischer Caddy, `server/docker-compose.yml`; der zentrale Caddy leitet `/ipa-palette*` beider Domains dorthin).
+
+**Neue Version:** `VERSION` erhöhen → `mac/build.sh` → `windows/build-setup.sh` → `gh release create vX.Y.Z <dmg> <exe>` (Update-Prüfung der Apps) → `scripts/veroeffentlichen.sh` (Download-Seite).
+
 Bauen: `mac/build.sh` (Installations-DMG, signiert + notarisiert, `--ohne-notarisierung` zum Testen), `windows/build-setup.sh` (Setup per Inno Setup, baut per SSH auf einem Windows-PC mit .NET 8 SDK), `windows/build-remote.sh` (einzelne .exe), `windows/build-msix.sh` (Store). Version in `VERSION`.
 
 ## Hosting (GitHub Pages)
