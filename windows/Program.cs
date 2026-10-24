@@ -12,13 +12,25 @@ namespace IPAPalette;
 
 static class Program
 {
+    static Mutex? single;
+
     [STAThread]
     static void Main(string[] args)
     {
-        using var single = new Mutex(true, "Askalon.IPAPalette", out bool first);
+        single = new Mutex(true, "Askalon.IPAPalette", out bool first);
         if (!first) { Native.PostMessage(Native.HWND_BROADCAST, Native.WM_SHOWME, 0, 0); return; }
         ApplicationConfiguration.Initialize();
         Application.Run(new PaletteForm(args));
+        ReleaseSingleInstance();
+    }
+
+    /// Vor dem Update freigeben: Das Setup wartet sonst auf unseren Mutex (AppMutex).
+    public static void ReleaseSingleInstance()
+    {
+        if (single == null) return;
+        try { single.ReleaseMutex(); } catch { }
+        single.Dispose();
+        single = null;
     }
 }
 
@@ -90,6 +102,7 @@ sealed class PaletteForm : Form
         core.WebMessageReceived += OnWebMessage;
         core.Navigate("https://ipa.palette/taskpane.html");
         Log($"bereit, Ziel={target}");
+        StartUpdateChecks();
 
         if (Array.IndexOf(args, "--wrap") >= 0) After(2000, () => Wrap("[", "]"));   // Testpfad Klammern
         int i = Array.IndexOf(args, "--type");   // Testpfad: nach 2 s ins aktive Programm tippen
@@ -219,6 +232,12 @@ sealed class PaletteForm : Form
         menu.Opening += async (_, _) => autostart.Checked = await GetAutostart();
         menu.Items.Add(autostart);
         menu.Items.Add(new ToolStripSeparator());
+        if (!IsPackaged)
+        {
+            menu.Items.Add("Nach Updates suchen …", null, async (_, _) => await CheckForUpdates(true));
+            menu.Items.Add(new ToolStripMenuItem("Version " + Short(CurrentVersion)) { Enabled = false });
+            menu.Items.Add(new ToolStripSeparator());
+        }
         menu.Items.Add("IPA-Palette beenden", null, (_, _) => { quitting = true; Close(); });
         tray.ContextMenuStrip = menu;
         tray.MouseClick += (_, e) => { if (e.Button == MouseButtons.Left) TogglePalette(); };
@@ -264,6 +283,135 @@ sealed class PaletteForm : Form
     {
         if (Visible) Hide();
         else { Show(); Native.ShowWindow(Handle, Native.SW_SHOWNOACTIVATE); }
+    }
+
+    // ---------------------------------------------------------------- Updates (neueste Version auf GitHub)
+
+    const string ReleasesApi = "https://api.github.com/repos/jeremiaswilcke/ipa-palette/releases/latest";
+    static readonly HttpClient http = CreateHttp();
+    string? offeredUpdate;   // von selbst nur einmal pro Lauf fragen
+    bool updating;
+
+    static HttpClient CreateHttp()
+    {
+        var h = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+        h.DefaultRequestHeaders.UserAgent.ParseAdd("IPA-Palette-Windows");
+        return h;
+    }
+
+    /// Testpfad: `--als-version 1.0.0` tut so, als wäre eine ältere Version installiert.
+    Version CurrentVersion
+    {
+        get
+        {
+            int i = Array.IndexOf(args, "--als-version");
+            if (i >= 0 && i + 1 < args.Length && Version.TryParse(args[i + 1], out var v)) return Normalize(v);
+            return Normalize(Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0));
+        }
+    }
+
+    static Version Normalize(Version v) => new(v.Major, v.Minor, Math.Max(v.Build, 0));
+    static string Short(Version v) => $"{v.Major}.{v.Minor}.{v.Build}";
+    string SkipFile => Path.Combine(dataDir, "update-ueberspringen.txt");
+
+    void StartUpdateChecks()
+    {
+        if (IsPackaged) return;   // die Store-Version aktualisiert der Store
+        After(8000, () => _ = CheckForUpdates(false));
+        var t = new System.Windows.Forms.Timer { Interval = 6 * 3600 * 1000 };
+        t.Tick += (_, _) => _ = CheckForUpdates(false);
+        t.Start();
+    }
+
+    async Task CheckForUpdates(bool manual)
+    {
+        if (updating) return;
+        string version, notes;
+        string? setupUrl = null;
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get, ReleasesApi);
+            req.Headers.Accept.ParseAdd("application/vnd.github+json");
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var res = await http.SendAsync(req, cts.Token);
+            res.EnsureSuccessStatusCode();
+            using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync());
+            var root = doc.RootElement;
+            version = (root.GetProperty("tag_name").GetString() ?? "").TrimStart('v');
+            notes = root.TryGetProperty("body", out var b) ? b.GetString() ?? "" : "";
+            foreach (var a in root.GetProperty("assets").EnumerateArray())
+            {
+                string name = a.GetProperty("name").GetString() ?? "";
+                if (name.StartsWith("IPA-Palette-Setup-") && name.EndsWith(".exe")) setupUrl = a.GetProperty("browser_download_url").GetString();
+            }
+        }
+        catch (Exception ex)
+        {
+            Log("Update-Prüfung: " + ex.Message);
+            if (manual) MessageBox.Show("GitHub ist gerade nicht erreichbar. Bitte später noch einmal versuchen.", "IPA-Palette", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        var current = CurrentVersion;
+        if (setupUrl == null || !Version.TryParse(version, out var remote) || Normalize(remote) <= current)
+        {
+            if (manual) MessageBox.Show($"Version {Short(current)} ist die neueste.", "IPA-Palette ist aktuell", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+        string? skipped = null;
+        try { skipped = File.ReadAllText(SkipFile).Trim(); } catch { }
+        if (!manual && (offeredUpdate == version || skipped == version)) return;
+        offeredUpdate = version;
+
+        if (Array.IndexOf(args, "--update-sofort") < 0)   // Testpfad: ohne Rückfrage installieren
+        {
+            notes = notes.Replace("**", "").Trim();
+            if (notes.Length > 600) notes = notes[..600] + " …";
+            var update = new TaskDialogButton("Jetzt aktualisieren");
+            var skip = new TaskDialogButton("Diese Version überspringen");
+            var page = new TaskDialogPage
+            {
+                Caption = "IPA-Palette",
+                Heading = $"IPA-Palette {version} ist da",
+                Text = $"Installiert ist Version {Short(current)}." + (notes.Length > 0 ? "\n\n" + notes : ""),
+                Icon = TaskDialogIcon.Information,
+                Buttons = { update, new TaskDialogButton("Später"), skip },
+                DefaultButton = update,
+            };
+            var choice = TaskDialog.ShowDialog(page, TaskDialogStartupLocation.CenterScreen);
+            if (choice == skip) { try { Directory.CreateDirectory(dataDir); File.WriteAllText(SkipFile, version); } catch { } return; }
+            if (choice != update) return;
+        }
+        await InstallUpdate(setupUrl, version);
+    }
+
+    /// Lädt das Setup, startet es still und beendet die App; das Setup startet die neue Version.
+    async Task InstallUpdate(string url, string version)
+    {
+        updating = true;
+        tray.ShowBalloonTip(4000, "IPA-Palette", $"Version {version} wird geladen und installiert …", ToolTipIcon.Info);
+        string setup = Path.Combine(Path.GetTempPath(), $"IPA-Palette-Setup-{version}.exe");
+        try
+        {
+            using (var res = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead))
+            {
+                res.EnsureSuccessStatusCode();
+                await using var dst = File.Create(setup);
+                await res.Content.CopyToAsync(dst);
+            }
+            Log("Update geladen: " + setup);
+            Program.ReleaseSingleInstance();
+            Process.Start(new ProcessStartInfo(setup, "/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /neustart=1") { UseShellExecute = true });
+            quitting = true;
+            Close();
+        }
+        catch (Exception ex)
+        {
+            updating = false;
+            Log("Update fehlgeschlagen: " + ex);
+            MessageBox.Show("Das Update konnte nicht installiert werden:\n\n" + ex.Message +
+                "\n\nDie neue Version gibt es auch unter github.com/jeremiaswilcke/ipa-palette/releases",
+                "IPA-Palette", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
     }
 
     // ---------------------------------------------------------------- Fenster

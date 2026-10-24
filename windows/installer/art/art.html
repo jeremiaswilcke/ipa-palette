@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<!-- Bilder fürs Setup: art.html?side | ?back | ?back&dark  (render.sh rendert alle Größen) -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: "IPA Palette Serif"; src: url("../../../fonts/ipa-palette-serif.woff2") format("woff2"); }
+html, body { margin: 0; width: 100vw; height: 100vh; overflow: hidden; }
+body { position: relative; font-family: "IPA Palette Serif", serif; }
+.side { background: radial-gradient(120% 70% at 30% 18%, #2b8aa8 0%, #1f6f8b 45%, #123f50 100%); color: #fff; }
+.side .logo { position: absolute; left: 0; right: 0; top: 17vh; text-align: center; font-size: 46vw; line-height: 1; text-shadow: 0 0.6vw 2.4vw rgba(0,0,0,.25); }
+.side .name { position: absolute; left: 0; right: 0; top: 50vh; text-align: center; font: 600 9.6vw/1 "Segoe UI", -apple-system, sans-serif; letter-spacing: .02em; }
+.side .tag { position: absolute; left: 0; right: 0; top: 56.5vh; text-align: center; font: 400 6vw/1.3 "Segoe UI", -apple-system, sans-serif; color: rgba(255,255,255,.72); }
+.side .line { position: absolute; left: 30%; right: 30%; top: 64vh; height: .5vw; background: rgba(255,255,255,.35); border-radius: 1vw; }
+.side .sym { position: absolute; color: rgba(255,255,255,.12); }
+.back { background: linear-gradient(165deg, #fbfcfc 0%, #f2f6f7 60%, #e6eff2 100%); }
+.back .sym { position: absolute; color: rgba(31,111,139,.075); }
+.back.dark { background: linear-gradient(165deg, #1d2124 0%, #1a1e20 60%, #15262d 100%); }
+.back.dark .sym { color: rgba(108,183,211,.075); }
+</style></head><body>
+<script>
+const q = location.search, side = q.includes('side');
+document.body.className = side ? 'side' : 'back' + (q.includes('dark') ? ' dark' : '');
+// verstreute Lautschriftzeichen, feste Positionen (x %, y %, Größe in vw)
+const sym = side
+  ? [['ʃ',8,6,15],['ŋ',74,10,17],['θ',12,74,16],['ʒ',70,72,14],['ɐ',40,86,12],['ʔ',82,40,12],['ç',6,40,11]]
+  : [['ʃ',84,6,9],['ŋ',70,58,13],['θ',90,38,7],['ʒ',58,80,8],['ɐ',88,78,10],['ɛ',76,28,6],['ʔ',46,92,6],['ç',94,60,5]];
+for (const [c, x, y, s] of sym) {
+  const d = document.createElement('div'); d.className = 'sym'; d.textContent = c;
+  d.style.cssText = `left:${x}%;top:${y}%;font-size:${s}vw;line-height:1`;
+  document.body.appendChild(d);
+}
+if (side) document.body.insertAdjacentHTML('beforeend',
+  '<div class="logo">ə</div><div class="name">IPA-Palette</div><div class="tag">Lautschrift per Klick</div><div class="line"></div>');
+</script>
+</body></html>

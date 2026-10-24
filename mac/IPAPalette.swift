@@ -33,6 +33,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         buildStatusItem()
         registerHotKey()
         showPanel()
+        startUpdateChecks()
         // Bedienungshilfen einmal anfragen; ohne sie wird nur kopiert.
         _ = AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary)
         if CommandLine.arguments.contains("--wrap") {   // Testpfad Klammern
@@ -143,6 +144,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         login.target = self
         login.state = SMAppService.mainApp.status == .enabled ? .on : .off
         menu.addItem(withTitle: "Bedienungshilfen öffnen …", action: #selector(openAccessibility), keyEquivalent: "").target = self
+        menu.addItem(.separator())
+        menu.addItem(withTitle: "Nach Updates suchen …", action: #selector(checkForUpdatesManually), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Version \(currentVersion)", action: nil, keyEquivalent: "").isEnabled = false
         menu.addItem(.separator())
         menu.addItem(withTitle: "IPA-Palette beenden", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         statusItem.menu = menu
@@ -274,6 +278,163 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     func toast(_ prefix: String, _ text: String) {
         let json = try! JSONSerialization.data(withJSONObject: [prefix, text])
         web.evaluateJavaScript("window.ipaNativeToast && window.ipaNativeToast(...\(String(data: json, encoding: .utf8)!))")
+    }
+
+    // MARK: Updates (neueste Version auf GitHub)
+
+    static let releasesAPI = URL(string: "https://api.github.com/repos/jeremiaswilcke/ipa-palette/releases/latest")!
+    /// Nur Updates mit unserer Developer-ID und Bundle-ID werden installiert.
+    static let updateRequirement = "anchor apple generic and certificate leaf[subject.OU] = \"7MN88MYAVL\" and identifier \"at.askalon.ipa-palette\""
+    var offeredUpdate: String?   // von selbst nur einmal pro Lauf fragen
+    var updating = false
+
+    /// Testpfad: `--als-version 1.0.0` tut so, als wäre eine ältere Version installiert.
+    var currentVersion: String {
+        let a = CommandLine.arguments
+        if let i = a.firstIndex(of: "--als-version"), i + 1 < a.count { return a[i + 1] }
+        return Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+    }
+
+    func startUpdateChecks() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 8) { self.checkForUpdates(manual: false) }
+        Timer.scheduledTimer(withTimeInterval: 6 * 3600, repeats: true) { [weak self] _ in self?.checkForUpdates(manual: false) }
+    }
+
+    static func isNewer(_ a: String, than b: String) -> Bool {
+        let x = a.split(separator: ".").map { Int($0) ?? 0 }, y = b.split(separator: ".").map { Int($0) ?? 0 }
+        for i in 0..<max(x.count, y.count) {
+            let p = i < x.count ? x[i] : 0, q = i < y.count ? y[i] : 0
+            if p != q { return p > q }
+        }
+        return false
+    }
+
+    @objc func checkForUpdatesManually() { checkForUpdates(manual: true) }
+
+    func checkForUpdates(manual: Bool) {
+        guard !updating else { return }
+        var req = URLRequest(url: Self.releasesAPI, timeoutInterval: 20)
+        req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        req.setValue("IPA-Palette-macOS", forHTTPHeaderField: "User-Agent")
+        URLSession.shared.dataTask(with: req) { data, _, _ in
+            let release = data.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+            DispatchQueue.main.async { self.handleRelease(release, manual: manual) }
+        }.resume()
+    }
+
+    func handleRelease(_ release: [String: Any]?, manual: Bool) {
+        guard let release, let tag = release["tag_name"] as? String, let assets = release["assets"] as? [[String: Any]] else {
+            if manual { info("Update-Prüfung fehlgeschlagen", "GitHub ist gerade nicht erreichbar. Bitte später noch einmal versuchen.") }
+            return
+        }
+        let version = tag.hasPrefix("v") ? String(tag.dropFirst()) : tag
+        guard Self.isNewer(version, than: currentVersion),
+              let link = assets.first(where: { ($0["name"] as? String ?? "").hasSuffix(".dmg") })?["browser_download_url"] as? String,
+              let url = URL(string: link) else {
+            if manual { info("IPA-Palette ist aktuell", "Version \(currentVersion) ist die neueste.") }
+            return
+        }
+        let defaults = UserDefaults.standard
+        if !manual && (offeredUpdate == version || defaults.string(forKey: "skipVersion") == version) { return }
+        offeredUpdate = version
+        if !CommandLine.arguments.contains("--update-sofort") {   // Testpfad: ohne Rückfrage installieren
+            let alert = NSAlert()
+            alert.messageText = "IPA-Palette \(version) ist da"
+            var notes = (release["body"] as? String ?? "").replacingOccurrences(of: "**", with: "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if notes.count > 600 { notes = String(notes.prefix(600)) + " …" }
+            alert.informativeText = "Installiert ist Version \(currentVersion)." + (notes.isEmpty ? "" : "\n\n" + notes)
+            alert.addButton(withTitle: "Jetzt aktualisieren")
+            alert.addButton(withTitle: "Später")
+            alert.addButton(withTitle: "Diese Version überspringen")
+            NSApp.activate(ignoringOtherApps: true)
+            switch alert.runModal() {
+            case .alertFirstButtonReturn: break
+            case .alertThirdButtonReturn: defaults.set(version, forKey: "skipVersion"); return
+            default: return
+            }
+        }
+        installUpdate(from: url, version: version)
+    }
+
+    /// Lädt die DMG, prüft die Signatur und tauscht die App aus, sobald diese beendet ist.
+    func installUpdate(from url: URL, version: String) {
+        updating = true
+        statusItem.button?.title = "ə↓"
+        URLSession.shared.downloadTask(with: url) { file, response, error in
+            let fail: (String, URL?) -> Void = { msg, dmg in DispatchQueue.main.async { self.updateFailed(msg, dmg: dmg) } }
+            guard let file, (response as? HTTPURLResponse)?.statusCode == 200 else {
+                return fail(error?.localizedDescription ?? "Der Download ist fehlgeschlagen.", nil)
+            }
+            let fm = FileManager.default
+            let work = fm.temporaryDirectory.appendingPathComponent("ipa-palette-update")
+            let dmg = work.appendingPathComponent("IPA-Palette-\(version).dmg")
+            let mount = work.appendingPathComponent("dmg"), staged = work.appendingPathComponent("IPA-Palette.app")
+            try? fm.removeItem(at: work)
+            do {
+                try fm.createDirectory(at: work, withIntermediateDirectories: true)
+                try fm.moveItem(at: file, to: dmg)
+            } catch { return fail(error.localizedDescription, nil) }
+            guard Self.run("/usr/bin/hdiutil", ["attach", dmg.path, "-nobrowse", "-readonly", "-noautoopen", "-mountpoint", mount.path]) == 0 else {
+                return fail("Die DMG ließ sich nicht öffnen.", nil)
+            }
+            let copied = Self.run("/usr/bin/ditto", [mount.appendingPathComponent("IPA-Palette.app").path, staged.path]) == 0
+            _ = Self.run("/usr/bin/hdiutil", ["detach", mount.path, "-quiet", "-force"])
+            guard copied else { return fail("Die App ließ sich nicht aus der DMG kopieren.", dmg) }
+            guard Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "-R", Self.updateRequirement, staged.path]) == 0 else {
+                return fail("Die Signatur des Updates stimmt nicht. Update abgebrochen.", nil)
+            }
+            DispatchQueue.main.async { self.replaceApp(with: staged, work: work, dmg: dmg) }
+        }.resume()
+    }
+
+    func replaceApp(with staged: URL, work: URL, dmg: URL) {
+        var dest = Bundle.main.bundleURL
+        if dest.path.hasPrefix("/Volumes/") || dest.path.contains("/AppTranslocation/") { dest = URL(fileURLWithPath: "/Applications/IPA-Palette.app") }
+        let folder = dest.deletingLastPathComponent().path
+        guard FileManager.default.isWritableFile(atPath: folder) else {
+            return updateFailed("Keine Schreibrechte für „\(folder)“. Bitte die neue Version aus der DMG nach „Programme“ ziehen.", dmg: dmg)
+        }
+        // Wartet auf das Ende dieser App, tauscht sie aus (bei Fehler zurück) und startet die neue.
+        let script = """
+        while kill -0 "$1" 2>/dev/null; do sleep 0.2; done
+        rm -rf "$2.alt"; [ -e "$2" ] && mv "$2" "$2.alt"
+        if /usr/bin/ditto "$3" "$2"; then rm -rf "$2.alt"; else rm -rf "$2"; [ -e "$2.alt" ] && mv "$2.alt" "$2"; fi
+        /usr/bin/open "$2"
+        rm -rf "$4"
+        """
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/bin/sh")
+        p.arguments = ["-c", script, "sh", String(ProcessInfo.processInfo.processIdentifier), dest.path, staged.path, work.path]
+        do { try p.run() } catch { return updateFailed(error.localizedDescription, dmg: dmg) }
+        NSApp.terminate(nil)
+    }
+
+    func updateFailed(_ message: String, dmg: URL?) {
+        updating = false
+        statusItem.button?.title = "ə"
+        info("Update nicht installiert", message)
+        if let dmg { NSWorkspace.shared.open(dmg) }
+    }
+
+    func info(_ title: String, _ text: String) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = text
+        NSApp.activate(ignoringOtherApps: true)
+        alert.runModal()
+    }
+
+    @discardableResult
+    static func run(_ tool: String, _ args: [String]) -> Int32 {
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: tool)
+        p.arguments = args
+        p.standardOutput = FileHandle.nullDevice
+        p.standardError = FileHandle.nullDevice
+        do { try p.run() } catch { return -1 }
+        p.waitUntilExit()
+        return p.terminationStatus
     }
 }
 
