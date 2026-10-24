@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>IPA-Palette – Microsoft Store</title>
+<style>
+  @page { size: A4; margin: 16mm 17mm 18mm; }
+  :root { --ink: #1d2327; --muted: #5f666b; --accent: #1f6f8b; --soft: #eef5f8; --line: #d9dcd6; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font: 10pt/1.55 "Segoe UI", -apple-system, Helvetica, Arial, sans-serif; color: var(--ink); margin: 0; }
+  h1 { font-size: 21pt; margin: 0 0 2pt; letter-spacing: -.2pt; }
+  .sub { color: var(--muted); margin: 0 0 14pt; }
+  h2 { font-size: 13pt; color: var(--accent); margin: 18pt 0 6pt; padding-bottom: 3pt; border-bottom: .3mm solid var(--line); break-after: avoid; }
+  h3 { font-size: 10.5pt; margin: 12pt 0 3pt; break-after: avoid; }
+  ol, ul { margin: 0 0 6pt; padding-left: 5.5mm; } li { margin-bottom: 3pt; }
+  p { margin: 0 0 6pt; }
+  .box { background: var(--soft); border-left: 1.2mm solid var(--accent); padding: 7pt 10pt; margin: 8pt 0; border-radius: 0 2mm 2mm 0; break-inside: avoid; }
+  .copy { border: .3mm solid var(--line); border-radius: 2mm; padding: 7pt 10pt; margin: 4pt 0 8pt; background: #fafaf8; white-space: pre-wrap; font-size: 9.3pt; break-inside: avoid; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.3pt; margin: 4pt 0 8pt; }
+  td { border-bottom: .25mm solid var(--line); padding: 4pt 6pt; vertical-align: top; }
+  td:first-child { width: 34%; color: var(--muted); }
+  code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 8.8pt; background: #f0f0ec; padding: 0 2pt; border-radius: 1mm; }
+  .check li { list-style: none; position: relative; } .check li::before { content: "☐"; position: absolute; left: -5mm; }
+  .page { break-before: page; }
+  img { width: 82%; display: block; margin: 0 auto; border: .3mm solid var(--line); border-radius: 2mm; }
+  .foot { color: var(--muted); font-size: 8pt; margin-top: 14pt; }
+</style>
+</head>
+<body>
+<h1>IPA-Palette im Microsoft Store</h1>
+<p class="sub">Anleitung zur Veröffentlichung · Stand 24. Oktober 2026</p>
+
+<div class="box"><b>Kurz:</b> Konto anlegen → Namen reservieren → drei Werte an Claude schicken → fertiges Paket hochladen → Texte einfügen → einreichen. Kosten: keine. Prüfung durch Microsoft: meist 1–3 Tage.</div>
+
+<h2>1 · Entwicklerkonto anlegen</h2>
+<ol>
+  <li><b>storedeveloper.microsoft.com</b> öffnen → <b>Get started</b>.</li>
+  <li>Mit einem <b>privaten Microsoft-Konto</b> anmelden (kein Uni-Konto).</li>
+  <li>Kontotyp <b>Einzelperson (Individual)</b> wählen. Seit September 2025 ist das kostenlos und ohne Kreditkarte.</li>
+  <li>Identität bestätigen: <b>Ausweis</b> scannen und <b>Selfie</b> aufnehmen.</li>
+  <li><b>Anzeigename des Herausgebers</b> festlegen, z. B. „Jeremias Wilcke“. Dieser Name steht später im Store unter der App.</li>
+</ol>
+
+<h2>2 · App-Namen reservieren</h2>
+<ol>
+  <li>In <b>Partner Center</b> → <b>Apps und Spiele</b> → <b>Neues Produkt</b> → <b>MSIX- oder PWA-App</b>.</li>
+  <li>Name: <b>IPA-Palette</b> → <b>Produktnamen reservieren</b>.</li>
+</ol>
+
+<h2>3 · Drei Werte an Claude schicken</h2>
+<p>In der App → <b>Produktverwaltung</b> → <b>Produktidentität</b> stehen:</p>
+<table>
+  <tr><td>Package/Identity/Name</td><td>z. B. <code>12345JeremiasWilcke.IPA-Palette</code></td></tr>
+  <tr><td>Package/Identity/Publisher</td><td>beginnt mit <code>CN=</code>, lange Zeichenkette</td></tr>
+  <tr><td>Package/Properties/PublisherDisplayName</td><td>z. B. <code>Jeremias Wilcke</code></td></tr>
+</table>
+<p>Claude trägt sie in <code>windows/msix/store.env</code> ein und baut mit <code>windows/build-msix.sh</code> das endgültige Paket <code>IPA-Palette_1.0.0.0_x64.msix</code>. Das Paket wird <b>nicht</b> selbst signiert, das übernimmt Microsoft.</p>
+
+<h2>4 · Einreichung ausfüllen</h2>
+<p>In der App → <b>Einreichung starten</b>. Die Abschnitte der Reihe nach:</p>
+
+<h3>Preise und Verfügbarkeit</h3>
+<ul><li>Märkte: alle · Sichtbarkeit: öffentlich · Preis: <b>kostenlos</b></li></ul>
+
+<h3>Eigenschaften</h3>
+<ul>
+  <li>Kategorie: <b>Bildung</b> (Unterkategorie Sprachen), alternativ Produktivität</li>
+  <li>Datenschutzrichtlinie: <code>https://jeremiaswilcke.github.io/ipa-palette/datenschutz.html</code></li>
+  <li>Website: <code>https://jeremiaswilcke.github.io/ipa-palette/</code></li>
+  <li>Support: <code>https://github.com/jeremiaswilcke/ipa-palette/issues</code></li>
+  <li>Persönliche Daten: <b>nein</b></li>
+</ul>
+
+<h3>Altersfreigabe</h3>
+<ul><li>Fragebogen: keine Gewalt, keine Nutzerinhalte, keine Kommunikation, keine Käufe, keine Standortdaten → ergibt <b>3+</b>.</li></ul>
+
+<h3>Pakete</h3>
+<ul>
+  <li><code>IPA-Palette_1.0.0.0_x64.msix</code> hochladen. Gerätefamilie: <b>Desktop</b>.</li>
+  <li>Hinweis zu <code>runFullTrust</code>: Diese Berechtigung ist nötig, damit die App in andere Programme tippen kann. Begründung siehe Prüfhinweis unten.</li>
+</ul>
+
+<h2>5 · Store-Eintrag (Deutsch, Deutschland)</h2>
+
+<h3>Beschreibung</h3>
+<div class="copy">Die IPA-Palette ist ein schwebendes Fenster mit allen Zeichen des Internationalen Phonetischen Alphabets. Ein Klick fügt das Symbol dort ein, wo Ihr Cursor steht – in Word, LibreOffice, im Browser, in E-Mails und jedem anderen Programm.
+
+Gedacht für Studierende der Linguistik und des Lehramts, für Lehrkräfte, Sprachtherapie und alle, die Lautschrift schreiben.
+
+• Alle IPA-Zeichen nach der offiziellen Tabelle: Konsonanten, Vokale, Affrikaten, Diakritika, Suprasegmentalia, Töne
+• Häufige Zeichen für Deutsch und Englisch auf einen Blick
+• Suche nach Name, Symbol, X-SAMPA-Code oder Unicode-Nummer
+• X-SAMPA-Schnelleingabe mit Vorschau: "hal@ wird zu ˈhalə
+• Klammern [ ], / / und ⟨ ⟩ – markierter Text wird eingeklammert
+• Zuletzt verwendete Zeichen
+• Ein- und ausblenden mit Strg+Alt+I, Symbol im Infobereich, auf Wunsch Start mit Windows
+• Heller und dunkler Modus
+• Funktioniert ohne Internet, ohne Konto, ohne Werbung, sammelt keine Daten
+
+Diakritika setzen sich auf das Zeichen davor: erst „b“, dann „◌̥“ ergibt „b̥“.</div>
+
+<h3>Kurzbeschreibung</h3>
+<div class="copy">IPA-Symbole per Klick in jedes Programm einfügen – mit Suche, X-SAMPA-Eingabe und Transkriptionsklammern.</div>
+
+<h3>Neuerungen in dieser Version</h3>
+<div class="copy">Erste Version.</div>
+
+<h3>Suchbegriffe (je ein Feld)</h3>
+<div class="copy">IPA · Lautschrift · Phonetik · Transkription · Linguistik · X-SAMPA · Sonderzeichen</div>
+
+<h3>Screenshot</h3>
+<p><code>store/screenshot-1.png</code> (1920 × 1080) hochladen:</p>
+<img src="screenshot-1.png" alt="Screenshot IPA-Palette">
+
+<h3>Hinweise für die Zertifizierung (englisch, ins Feld „Notes for certification“)</h3>
+<div class="copy">The app is a floating IPA (phonetic alphabet) character palette. Clicking a symbol types that character into the previously active window via SendInput, like an on-screen keyboard. The bracket buttons briefly use the clipboard (Ctrl+C) to wrap the current selection and restore the previous clipboard content afterwards. runFullTrust is required for SendInput and the global hotkey Ctrl+Alt+I. No network access, no data collection. To test: open Notepad, then click a symbol in the palette.</div>
+
+<h2>6 · Einreichen und danach</h2>
+<ul class="check">
+  <li><b>An den Store übermitteln</b> klicken.</li>
+  <li>Prüfung abwarten (meist 1–3 Tage). Bei Rückfragen schickt Microsoft eine Mail an die Konto-Adresse.</li>
+  <li>Nach der Freigabe den Store-Link in die Anleitung für Kommilitonen aufnehmen lassen, dann entfällt die SmartScreen-Warnung.</li>
+  <li>Updates: neue Version in <code>VERSION</code> → <code>windows/build-msix.sh</code> → in Partner Center neue Einreichung mit dem neuen Paket.</li>
+</ul>
+
+<p class="foot">IPA-Palette · GitHub jeremiaswilcke/ipa-palette (öffentlich) · Forgejo Jeremias/ipa-palette (privat)</p>
+</body>
+</html>
