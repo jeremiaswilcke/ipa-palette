@@ -15,9 +15,9 @@ Die IPA-Palette ist eine Seitenleiste in Word: Ein Klick auf ein Symbol fügt es
 
 Die App schwebt über allen Fenstern und tippt das Zeichen dort, wo euer Cursor steht: in Word, WordCraft, Pages, LibreOffice, im Browser. Markiert ihr ein Wort und klickt **[ ]**, wird es eingeklammert. Download: **github.com/jeremiaswilcke/ipa-palette/releases/latest**
 
-**Mac:** **IPA-Palette-1.0.0.dmg** öffnen, die App in „Programme“ ziehen und starten. Beim ersten Start fragt macOS nach **Bedienungshilfen** → Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → **IPA-Palette** einschalten. Ein- und ausblenden mit **⌃⌥I** oder über **ə** in der Menüleiste.
+**Mac:** **IPA-Palette-….dmg** öffnen, die App auf „Programme“ ziehen und aus „Programme“ starten. Beim ersten Start fragt macOS nach **Bedienungshilfen** → Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → **IPA-Palette** einschalten. Ein- und ausblenden mit **⌃⌥I** oder über **ə** in der Menüleiste.
 
-**Windows:** **IPA-Palette.exe** herunterladen und doppelklicken, eine Installation ist nicht nötig. Warnt Windows („Der Computer wurde durch Windows geschützt“): **Weitere Informationen → Trotzdem ausführen**. Ein- und ausblenden mit **Strg+Alt+I** oder über das Symbol unten rechts im Infobereich.
+**Windows:** **IPA-Palette-Setup-….exe** herunterladen und ausführen, Administratorrechte braucht es nicht. Warnt Windows („Der Computer wurde durch Windows geschützt“): **Weitere Informationen → Trotzdem ausführen**. Danach im Startmenü **IPA-Palette** öffnen. Ein- und ausblenden mit **Strg+Alt+I** oder über das Symbol unten rechts im Infobereich. Im **S-Modus** lässt Windows nur Store-Apps zu – bis die Palette im Store ist, die Browser-Palette nehmen (siehe Linux).
 
 > **Merksatz:** Diakritika (z. B. ◌̥ für stimmlos) immer **nach** dem Buchstaben klicken, sie setzen sich auf das Zeichen davor: erst **b**, dann **◌̥** ergibt **b̥**.
 

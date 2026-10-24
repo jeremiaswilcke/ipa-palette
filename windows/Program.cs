@@ -57,7 +57,18 @@ sealed class PaletteForm : Form
     protected override async void OnLoad(EventArgs e)
     {
         base.OnLoad(e);
-        try { await Init(); } catch (Exception ex) { Log("Start fehlgeschlagen: " + ex); }
+        if (Array.IndexOf(args, "--hidden") >= 0) BeginInvoke(Hide);   // Autostart: nur ins Infobereich
+        try { await Init(); }
+        catch (Exception ex)
+        {
+            Log("Start fehlgeschlagen: " + ex);
+            bool noWebView = ex is WebView2RuntimeNotFoundException;
+            MessageBox.Show(noWebView
+                ? "Für die IPA-Palette fehlt die „Microsoft Edge WebView2 Runtime“.\n\nBitte installieren: https://go.microsoft.com/fwlink/p/?LinkId=2124703\n(oder das Setup der IPA-Palette erneut ausführen)"
+                : "Die IPA-Palette konnte nicht starten:\n\n" + ex.Message + "\n\nProtokoll: " + Path.Combine(dataDir, "log.txt"),
+                "IPA-Palette", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            quitting = true; Close();
+        }
     }
 
     async Task Init()
@@ -243,7 +254,7 @@ sealed class PaletteForm : Form
         }
         using (var k = Registry.CurrentUser.CreateSubKey(RunKey))
         {
-            if (on) k.SetValue("IPA-Palette", $"\"{Environment.ProcessPath}\"");
+            if (on) k.SetValue("IPA-Palette", $"\"{Environment.ProcessPath}\" --hidden");
             else k.DeleteValue("IPA-Palette", false);
         }
         return on;

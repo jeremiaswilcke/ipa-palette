@@ -19,6 +19,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
     var target: NSRunningApplication?
 
     func applicationDidFinishLaunching(_ note: Notification) {
+        if offerMoveToApplications() { return }
         let me = ProcessInfo.processInfo.processIdentifier
         if let front = NSWorkspace.shared.frontmostApplication, front.processIdentifier != me { target = front }
         NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didActivateApplicationNotification,
@@ -41,6 +42,34 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             let text = CommandLine.arguments[i + 1]   // Testpfad: nach 1,5 s ins aktive Programm tippen
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.insert(text, back: 0) }
         }
+    }
+
+    /// Aus der DMG oder dem Download-Ordner gestartet (macOS verlegt die App dann in einen
+    /// Zufallsordner, Bedienungshilfen und Autostart halten nicht): anbieten, nach /Applications zu kopieren.
+    func offerMoveToApplications() -> Bool {
+        let path = Bundle.main.bundlePath
+        guard path.hasPrefix("/Volumes/") || path.contains("/AppTranslocation/") || path.contains("/Downloads/") else { return false }
+        let alert = NSAlert()
+        alert.messageText = "IPA-Palette in „Programme“ verschieben?"
+        alert.informativeText = "Die App läuft gerade aus der DMG bzw. dem Download-Ordner. Damit Tastenkürzel, Bedienungshilfen und „Bei Anmeldung starten“ zuverlässig funktionieren, sollte sie in „Programme“ liegen."
+        alert.addButton(withTitle: "Verschieben und starten")
+        alert.addButton(withTitle: "Nicht jetzt")
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return false }
+        let dest = URL(fileURLWithPath: "/Applications/IPA-Palette.app")
+        let fm = FileManager.default
+        do {
+            for other in NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!)
+                where other != NSRunningApplication.current { other.terminate() }
+            if fm.fileExists(atPath: dest.path) { try fm.trashItem(at: dest, resultingItemURL: nil) }
+            try fm.copyItem(at: Bundle.main.bundleURL, to: dest)
+        } catch {
+            let err = NSAlert(error: error); err.runModal(); return false
+        }
+        NSWorkspace.shared.openApplication(at: dest, configuration: NSWorkspace.OpenConfiguration()) { _, _ in
+            DispatchQueue.main.async { NSApp.terminate(nil) }
+        }
+        return true
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

@@ -11,9 +11,9 @@ Es sind nur statische Dateien, kein Build-Schritt, keine Abhängigkeiten.
 Neben dem Word-Add-in gibt es die Palette als eigene App. Sie schwebt über allen Fenstern und tippt das Zeichen ins zuletzt aktive Programm, also auch in WordCraft, Pages, LibreOffice, Mail oder den Browser. Klammern umschließen markierten Text.
 
 - **Mac:** `IPA-Palette-x.y.z.dmg` aus den [Releases](https://github.com/jeremiaswilcke/ipa-palette/releases/latest) öffnen, App in „Programme“ ziehen, starten. Beim ersten Start **Bedienungshilfen** erlauben (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen). Ein-/ausblenden mit **⌃⌥I** oder über „ə“ in der Menüleiste. Signiert und notarisiert.
-- **Windows:** `IPA-Palette.exe` aus den Releases laden und starten, keine Installation nötig. Ein-/ausblenden mit **Strg+Alt+I** oder über das Symbol im Infobereich. Die Datei ist nicht signiert: SmartScreen fragt beim ersten Start, dann **Weitere Informationen → Trotzdem ausführen**.
+- **Windows:** `IPA-Palette-Setup-x.y.z.exe` aus den Releases laden und ausführen (ohne Administratorrechte, Startmenü, auf Wunsch Autostart, installiert fehlende WebView2-Laufzeit mit). Ein-/ausblenden mit **Strg+Alt+I** oder über das Symbol im Infobereich. Das Setup ist nicht signiert: SmartScreen fragt einmal, dann **Weitere Informationen → Trotzdem ausführen**. Im S-Modus geht nur die Store-Version.
 
-Bauen: `mac/build.sh` (signiert + notarisiert, `--ohne-notarisierung` zum Testen), `windows/build-remote.sh` (baut per SSH auf einem Windows-PC mit .NET 8 SDK). Version in `VERSION`.
+Bauen: `mac/build.sh` (Installations-DMG, signiert + notarisiert, `--ohne-notarisierung` zum Testen), `windows/build-setup.sh` (Setup per Inno Setup, baut per SSH auf einem Windows-PC mit .NET 8 SDK), `windows/build-remote.sh` (einzelne .exe), `windows/build-msix.sh` (Store). Version in `VERSION`.
 
 ## Hosting (GitHub Pages)
 
