@@ -2,15 +2,28 @@
 
 Die IPA-Palette ist eine Seitenleiste in Word: Ein Klick auf ein Symbol fügt es an der Cursorposition ein. Mit Suche (z. B. „sch“ oder „ʃ“), X-SAMPA-Schnelleingabe und Klammern `[ ]`, `/ /`, `⟨ ⟩`. Kostenlos, ohne Konto, die Uni-Lizenz von Microsoft 365 reicht.
 
-> **Merksatz:** Für alle Wege braucht ihr zuerst die Datei **manifest.xml**. Startseite öffnen: **jeremiaswilcke.github.io/ipa-palette** → Knopf **„manifest.xml herunterladen“**. Nicht den direkten Link auf die Datei nehmen, den zeigt der Browser nur an.
+> **Merksatz:** Für das Word-Add-in braucht ihr zuerst die Datei **manifest.xml**. Startseite öffnen: **jeremiaswilcke.github.io/ipa-palette** → Knopf **„manifest.xml herunterladen“**. Nicht den direkten Link auf die Datei nehmen, den zeigt der Browser nur an.
 
 | System | Weg | Aufwand |
 |---|---|---|
-| Mac | Datei in einen Word-Ordner legen | 2 Minuten |
-| Windows | Ordner freigeben und in Word eintragen | 5 Minuten |
+| Mac oder Windows, jedes Programm | App herunterladen und starten | 1 Minute |
+| Mac, nur Word | Datei in einen Word-Ordner legen | 2 Minuten |
+| Windows, nur Word | Ordner freigeben und in Word eintragen | 5 Minuten |
 | Linux (und alle ohne Word) | Word im Browser oder Palette im Browser | 1 Minute |
 
-## Mac
+## Am einfachsten: die App (für jedes Programm)
+
+Die App schwebt über allen Fenstern und tippt das Zeichen dort, wo euer Cursor steht: in Word, WordCraft, Pages, LibreOffice, im Browser. Markiert ihr ein Wort und klickt **[ ]**, wird es eingeklammert. Download: **github.com/jeremiaswilcke/ipa-palette/releases/latest**
+
+**Mac:** **IPA-Palette-1.0.0.dmg** öffnen, die App in „Programme“ ziehen und starten. Beim ersten Start fragt macOS nach **Bedienungshilfen** → Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen → **IPA-Palette** einschalten. Ein- und ausblenden mit **⌃⌥I** oder über **ə** in der Menüleiste.
+
+**Windows:** **IPA-Palette.exe** herunterladen und doppelklicken, eine Installation ist nicht nötig. Warnt Windows („Der Computer wurde durch Windows geschützt“): **Weitere Informationen → Trotzdem ausführen**. Ein- und ausblenden mit **Strg+Alt+I** oder über das Symbol unten rechts im Infobereich.
+
+> **Merksatz:** Diakritika (z. B. ◌̥ für stimmlos) immer **nach** dem Buchstaben klicken, sie setzen sich auf das Zeichen davor: erst **b**, dann **◌̥** ergibt **b̥**.
+
+Wer lieber direkt in Word arbeitet, nimmt das Word-Add-in:
+
+## Word-Add-in am Mac
 
 1. Im Finder **⇧⌘G** drücken (Gehe zum Ordner) und diesen Pfad einfügen:
    `~/Library/Containers/com.microsoft.Word/Data/Documents/wef`
@@ -21,7 +34,7 @@ Die IPA-Palette ist eine Seitenleiste in Word: Ein Klick auf ein Symbol fügt es
 
 Danach gibt es im Start-Tab den Knopf **„IPA-Palette“**. Ist das Fenster schmal, steckt „Add-ins“ hinter dem **„…“** am rechten Rand des Menübands.
 
-## Windows
+## Word-Add-in unter Windows
 
 Word lädt eigene Add-ins unter Windows nur aus einem freigegebenen Ordner. Das richtet ihr einmal ein, danach bleibt die Palette dauerhaft in Word.
 
@@ -35,7 +48,7 @@ Word lädt eigene Add-ins unter Windows nur aus einem freigegebenen Ordner. Das 
 
 Bleibt „Freigegebener Ordner“ leer: Word noch einmal schließen und öffnen, dann den Reiter erneut anklicken.
 
-## Linux (und alle ohne Word-Programm)
+## Linux und alle ohne Word-Programm
 
 Für Linux gibt es kein Word-Programm. Zwei Wege:
 
