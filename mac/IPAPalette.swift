@@ -381,7 +381,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
             let copied = Self.run("/usr/bin/ditto", [mount.appendingPathComponent("IPA-Palette.app").path, staged.path]) == 0
             _ = Self.run("/usr/bin/hdiutil", ["detach", mount.path, "-quiet", "-force"])
             guard copied else { return fail("Die App ließ sich nicht aus der DMG kopieren.", dmg) }
-            guard Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "-R", Self.updateRequirement, staged.path]) == 0 else {
+            guard Self.run("/usr/bin/codesign", ["--verify", "--deep", "--strict", "-R=" + Self.updateRequirement, staged.path]) == 0 else {
                 return fail("Die Signatur des Updates stimmt nicht. Update abgebrochen.", nil)
             }
             DispatchQueue.main.async { self.replaceApp(with: staged, work: work, dmg: dmg) }
@@ -431,9 +431,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         p.executableURL = URL(fileURLWithPath: tool)
         p.arguments = args
         p.standardOutput = FileHandle.nullDevice
-        p.standardError = FileHandle.nullDevice
-        do { try p.run() } catch { return -1 }
+        let err = Pipe()
+        p.standardError = err
+        do { try p.run() } catch { NSLog("IPA-Palette: %@ startet nicht: %@", tool, error.localizedDescription); return -1 }
+        let msg = String(data: err.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
         p.waitUntilExit()
+        if p.terminationStatus != 0 { NSLog("IPA-Palette: %@ %@ → %d %@", tool, args.joined(separator: " "), p.terminationStatus, msg) }
         return p.terminationStatus
     }
 }
