@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>IPA-Palette einrichten</title>
+  <meta name="description" content="IPA-Palette: Word-Add-in zum Einfügen von IPA-Symbolen. Anleitung zur Einrichtung auf GitHub Pages und in Word.">
+  <link rel="icon" type="image/png" href="assets/icon-32.png">
+  <style>
+    @font-face {
+      font-family: "IPA Palette Serif";
+      src: url("fonts/ipa-palette-serif.woff2") format("woff2");
+      font-display: swap;
+    }
+    :root {
+      --bg: #f7f7f5; --surface: #ffffff; --surface-2: #eeeeea; --text: #1d2327; --muted: #5f666b;
+      --border: #d4d4ce; --accent: #1f6f8b; --accent-ink: #ffffff; --accent-soft: #e0eef3; --warn-bg: #fff4d6; --warn-text: #5c4300;
+      --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --font-ipa: "IPA Palette Serif", "Charis SIL", "Doulos SIL", "Gentium Plus", "Noto Serif", "Times New Roman", serif;
+      --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #1b1d1f; --surface: #25282b; --surface-2: #2e3236; --text: #e7e8e9; --muted: #9ba2a7;
+        --border: #3e4348; --accent: #6cb7d3; --accent-ink: #0d2a35; --accent-soft: #24414c; --warn-bg: #3b3115; --warn-text: #f2dfa5;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #1b1d1f; --surface: #25282b; --surface-2: #2e3236; --text: #e7e8e9; --muted: #9ba2a7;
+      --border: #3e4348; --accent: #6cb7d3; --accent-ink: #0d2a35; --accent-soft: #24414c; --warn-bg: #3b3115; --warn-text: #f2dfa5;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--font-ui); }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 28px 16px 64px; }
+    a { color: var(--accent); text-underline-offset: 2px; }
+    a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+    header.hero { padding: 8px 0 20px; border-bottom: 1px solid var(--border); margin-bottom: 8px; }
+    .hero .glyphs { font-family: var(--font-ipa); font-size: 34px; letter-spacing: 0.18em; color: var(--accent); margin: 0 0 6px; line-height: 1.2; }
+    h1 { font-size: 28px; line-height: 1.2; margin: 0 0 8px; }
+    h2 { font-size: 20px; line-height: 1.3; margin: 0 0 10px; display: flex; gap: 10px; align-items: baseline; }
+    h2 .n { flex: none; display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; background: var(--accent); color: var(--accent-ink); font-weight: 700; transform: translateY(-1px); }
+    h3 { font-size: 16px; margin: 18px 0 6px; }
+    p { margin: 0 0 12px; }
+    section { padding: 22px 0 6px; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: 0; }
+    ol, ul { margin: 0 0 14px; padding-left: 22px; }
+    li { margin-bottom: 6px; }
+    code, kbd { font-family: var(--font-mono); font-size: 0.88em; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+    .path code, .urlbox code { white-space: normal; overflow-wrap: anywhere; }
+    code.wrap { display: block; width: fit-content; max-width: 100%; box-sizing: border-box; margin: 6px 0; padding: 6px 10px; white-space: normal; overflow-wrap: anywhere; }
+    .path { display: flex; gap: 8px; align-items: stretch; margin: 6px 0 10px; }
+    .path code { flex: 1 1 auto; padding: 8px 10px; border: 1px solid var(--border); background: var(--surface); font-size: 0.85em; }
+    .btn { font: inherit; font-size: 15px; font-weight: 600; min-height: 42px; padding: 0 18px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
+    .btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
+    .btn.small { min-height: 0; padding: 0 12px; font-size: 13px; }
+    .note { padding: 10px 14px; border-radius: 8px; background: var(--surface-2); margin: 0 0 14px; font-size: 15px; }
+    .note.warn { background: var(--warn-bg); color: var(--warn-text); }
+    .urlbox { margin: 12px 0 6px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); font-size: 14px; }
+    .urlbox .k { color: var(--muted); display: block; font-size: 12.5px; }
+    .urlbox code { background: none; padding: 0; font-size: 14px; }
+    details { margin: 10px 0 12px; }
+    summary { cursor: pointer; font-weight: 600; font-size: 15px; }
+    pre { margin: 8px 0 0; padding: 12px; max-height: 320px; overflow: auto; font: 12.5px/1.45 var(--font-mono); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+    .sources li { font-size: 14.5px; }
+    footer { margin-top: 28px; color: var(--muted); font-size: 13.5px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 12px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <p class="glyphs" aria-hidden="true">ʃ ə ŋ ɐ&#x32F;</p>
+      <h1>IPA-Palette</h1>
+      <p>Ein Add-in für Microsoft Word. Es öffnet neben dem Dokument eine Seitenleiste mit den Zeichen des Internationalen Phonetischen Alphabets: Ein Klick fügt das Symbol an der Cursorposition ein.
+         Dazu gibt es eine Suche, eine X-SAMPA-Schnelleingabe, Klammern für phonetische, phonemische und graphemische Notation sowie eine Liste der zuletzt verwendeten Zeichen.</p>
+      <div class="actions">
+        <a class="btn" href="taskpane.html" style="display:inline-flex;align-items:center;text-decoration:none;">Im Browser ausprobieren</a>
+        <span style="color:var(--muted);font-size:14px;">Im Browser kopiert ein Klick das Symbol in die Zwischenablage.</span>
+      </div>
+    </header>
+
+    <section id="hosting">
+      <h2><span class="n">1</span>Dateien bei GitHub Pages veröffentlichen</h2>
+      <p>Word lädt die Seitenleiste von einer https-Adresse. GitHub Pages stellt diese kostenlos bereit; es werden nur statische Dateien benötigt.</p>
+      <ol>
+        <li>Bei GitHub anmelden und ein neues <strong>öffentliches</strong> Repository mit dem Namen <code>ipa-palette</code> anlegen.</li>
+        <li>Im Repository <strong>Add file → Upload files</strong> wählen und alle Dateien des Ordners <code>ipa-palette</code> hochladen, einschließlich der Unterordner <code>assets</code> und <code>fonts</code> (die Ordner lassen sich per Drag-and-drop in das Browserfenster ziehen). Anschließend <strong>Commit changes</strong>.</li>
+        <li><strong>Settings → Pages → „Deploy from a branch“</strong> wählen, Branch <code>main</code>, Ordner <code>/ (root)</code>, dann <strong>Save</strong>.</li>
+        <li>Nach etwa einer Minute diese Adresse öffnen: <code class="wrap">https://BENUTZERNAME.github.io/ipa-palette/</code> Dort erscheint diese Seite; mit ihr geht es bei Schritt 2 weiter.</li>
+      </ol>
+    </section>
+
+    <section id="manifest">
+      <h2><span class="n">2</span>manifest.xml erzeugen</h2>
+      <p>Die Manifest-Datei sagt Word, wo die Seitenleiste liegt. Sie wird hier im Browser für genau die Adresse dieser Seite erzeugt; es wird nichts hochgeladen.</p>
+      <div id="proto-warning" class="note warn" hidden>
+        Diese Seite wird nicht über https geöffnet. Ein Manifest, das auf diese Adresse zeigt, funktioniert in Word nicht. Bitte zuerst Schritt 1 abschließen und die Seite über die GitHub-Pages-Adresse öffnen.
+      </div>
+      <div class="actions">
+        <button type="button" id="download" class="btn primary">manifest.xml herunterladen</button>
+      </div>
+      <div class="urlbox">
+        <span class="k">Adresse der Seitenleiste im Manifest</span>
+        <code id="url-taskpane"></code>
+        <span class="k" style="margin-top:6px;">Basis-Adresse (BASE_URL) und App-Domain</span>
+        <code id="url-base"></code> · <code id="url-origin"></code>
+      </div>
+      <details>
+        <summary>Vorschau des erzeugten Manifests</summary>
+        <pre id="manifest-preview" tabindex="0"></pre>
+      </details>
+    </section>
+
+    <section id="mac">
+      <h2><span class="n">3</span>Installation in Word für Mac</h2>
+      <ol>
+        <li>Im Finder <strong>Gehe zu → Gehe zu Ordner</strong> öffnen (<kbd>⇧⌘G</kbd>) und diesen Pfad eingeben:
+          <div class="path"><code id="mac-path">~/Library/Containers/com.microsoft.Word/Data/Documents/</code><button type="button" class="btn small" data-copy="mac-path">Kopieren</button></div>
+        </li>
+        <li>In diesem Ordner einen Ordner namens <code>wef</code> anlegen, falls er noch nicht vorhanden ist.</li>
+        <li>Die heruntergeladene <code>manifest.xml</code> in den Ordner <code>wef</code> legen.</li>
+        <li>Word beenden und neu starten.</li>
+        <li>Im Reiter <strong>Start</strong> (oder <strong>Einfügen</strong>) auf <strong>Add-ins</strong> klicken und dort <strong>IPA-Palette</strong> wählen (unter „Meine Add-ins“ bzw. „Entwickler-Add-ins“). Danach erscheint der Button <strong>IPA-Palette</strong> dauerhaft im Start-Tab.</li>
+      </ol>
+
+      <h3>Word im Web</h3>
+      <ol>
+        <li><strong>Einfügen → Add-ins</strong> öffnen.</li>
+        <li><strong>„Mein Add-In hochladen“</strong> wählen und die <code>manifest.xml</code> auswählen.</li>
+      </ol>
+
+      <h3>Word für Windows (Kurzhinweis)</h3>
+      <p>Unter Windows wird die <code>manifest.xml</code> über einen freigegebenen Netzwerkordner eingebunden: Ordner freigeben, in Word unter <strong>Datei → Optionen → Trust Center → Einstellungen für das Trust Center → Kataloge vertrauenswürdiger Add-Ins</strong> den Netzwerkpfad eintragen, Word neu starten und das Add-in unter <strong>Einfügen → Meine Add-Ins → Freigegebener Ordner</strong> wählen.</p>
+
+      <h3>Updates</h3>
+      <p>Word speichert die Seiten des Add-ins zwischen. Nach Änderungen am Add-in (neue Dateien auf GitHub) den Cache leeren, also den Inhalt dieses Ordners löschen und Word neu starten:
+        <code class="wrap">~/Library/Containers/com.Microsoft.OsfWebHost/Data/</code></p>
+    </section>
+
+    <section id="schrift">
+      <h2><span class="n">4</span>Schrift-Tipp</h2>
+      <p>Für die schönste Darstellung in Word empfiehlt sich <strong>Charis SIL</strong> oder <strong>Doulos SIL</strong>, beide gratis bei SIL erhältlich:
+        <a href="https://software.sil.org/charis/" target="_blank" rel="noopener">software.sil.org/charis</a> und
+        <a href="https://software.sil.org/doulos/" target="_blank" rel="noopener">software.sil.org/doulos</a>.
+        Nach der Installation lässt sich die Schrift in der IPA-Palette unter <strong>Schriftart</strong> auswählen; sie wird dann auf alle eingefügten Zeichen angewendet. Mit der Voreinstellung „Dokumentschrift beibehalten“ bleibt die Schrift des Dokuments unverändert.</p>
+    </section>
+
+    <section id="quellen" class="sources">
+      <h2>Quellen</h2>
+      <ul>
+        <li>International Phonetic Association: <em>The International Phonetic Alphabet (IPA chart, 2020)</em>, <a href="https://www.internationalphoneticassociation.org/" target="_blank" rel="noopener">internationalphoneticassociation.org</a>, Lizenz CC BY-SA 3.0.</li>
+        <li>Wells, J. C. (1995): <em>Computer-coding the IPA: a proposed extension of SAMPA</em>. University College London (<a href="https://www.phon.ucl.ac.uk/home/sampa/" target="_blank" rel="noopener">SAMPA-Seiten</a>).</li>
+        <li>Microsoft Learn: <a href="https://learn.microsoft.com/office/dev/add-ins/testing/sideload-an-office-add-in-on-mac" target="_blank" rel="noopener">„Sideload Office Add-ins on Mac“</a>.</li>
+        <li>Anzeigeschrift der Symbole: Teilmenge von Charis (© SIL Global), SIL Open Font License 1.1, siehe <a href="fonts/OFL.txt">fonts/OFL.txt</a>.</li>
+      </ul>
+    </section>
+
+    <footer>
+      <p>Die IPA-Palette besteht nur aus statischen Dateien und sammelt keine Daten. Einzige externe Ressource ist <code>office.js</code> von Microsoft, das Word für das Einfügen benötigt.</p>
+    </footer>
+  </div>
+
+  <script type="text/plain" id="manifest-template"><?xml version="1.0" encoding="UTF-8"?>
+<!-- IPA-Palette, Word-Add-in-Manifest. Aus manifest.template.xml erzeugt (Platzhalter BASE_URL und APP_DOMAIN). -->
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <Id>d6ecd819-056c-4995-b5fc-8a532117d8da</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>Askalon</ProviderName>
+  <DefaultLocale>de-DE</DefaultLocale>
+  <DisplayName DefaultValue="IPA-Palette"/>
+  <Description DefaultValue="Symbole des Internationalen Phonetischen Alphabets (IPA) per Klick in Word einfügen, mit Suche, X-SAMPA-Eingabe und Klammern."/>
+  <IconUrl DefaultValue="{{BASE_URL}}/assets/icon-32.png"/>
+  <HighResolutionIconUrl DefaultValue="{{BASE_URL}}/assets/icon-64.png"/>
+  <SupportUrl DefaultValue="{{BASE_URL}}/index.html"/>
+  <AppDomains>
+    <AppDomain>{{APP_DOMAIN}}</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document"/>
+  </Hosts>
+  <Requirements>
+    <Sets>
+      <Set Name="WordApi" MinVersion="1.1"/>
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="{{BASE_URL}}/taskpane.html"/>
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title"/>
+            <Description resid="GetStarted.Description"/>
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl"/>
+          </GetStarted>
+          <FunctionFile resid="Commands.Url"/>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="IPAPalette.Group">
+                <Label resid="Group.Label"/>
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16"/>
+                  <bt:Image size="32" resid="Icon.32x32"/>
+                  <bt:Image size="80" resid="Icon.80x80"/>
+                </Icon>
+                <Control xsi:type="Button" id="IPAPalette.ShowTaskpane">
+                  <Label resid="Button.Label"/>
+                  <Supertip>
+                    <Title resid="Button.Label"/>
+                    <Description resid="Button.Tooltip"/>
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16"/>
+                    <bt:Image size="32" resid="Icon.32x32"/>
+                    <bt:Image size="80" resid="Icon.80x80"/>
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>IPAPalette</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url"/>
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="{{BASE_URL}}/assets/icon-16.png"/>
+        <bt:Image id="Icon.32x32" DefaultValue="{{BASE_URL}}/assets/icon-32.png"/>
+        <bt:Image id="Icon.80x80" DefaultValue="{{BASE_URL}}/assets/icon-80.png"/>
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="{{BASE_URL}}/taskpane.html"/>
+        <bt:Url id="Commands.Url" DefaultValue="{{BASE_URL}}/commands.html"/>
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="{{BASE_URL}}/index.html"/>
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="IPA-Palette ist bereit"/>
+        <bt:String id="Group.Label" DefaultValue="IPA"/>
+        <bt:String id="Button.Label" DefaultValue="IPA-Palette"/>
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="Die IPA-Palette finden Sie im Start-Tab in der Gruppe „IPA“. Ein Klick öffnet die Symbolleiste mit allen IPA-Zeichen."/>
+        <bt:String id="Button.Tooltip" DefaultValue="Öffnet die IPA-Palette: IPA-Symbole per Klick an der Cursorposition einfügen."/>
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
+</script>
+  <script>
+    (function () {
+      'use strict';
+      var tpl = document.getElementById('manifest-template').textContent.replace(/^\s+/, '');
+      var base = new URL('.', location.href).href.replace(/\/$/, '');
+      var origin = location.origin && location.origin !== 'null' ? location.origin : 'https://BENUTZERNAME.github.io';
+
+      function xmlEscape(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      }
+      function buildManifest() {
+        return tpl.split('{{BASE_URL}}').join(xmlEscape(base)).split('{{APP_DOMAIN}}').join(xmlEscape(origin));
+      }
+
+      var xml = buildManifest();
+      document.getElementById('url-taskpane').textContent = base + '/taskpane.html';
+      document.getElementById('url-base').textContent = base;
+      document.getElementById('url-origin').textContent = origin;
+      document.getElementById('manifest-preview').textContent = xml;
+      if (location.protocol !== 'https:') document.getElementById('proto-warning').hidden = false;
+
+      document.getElementById('download').addEventListener('click', function () {
+        var blob = new Blob([buildManifest()], { type: 'application/xml' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'manifest.xml';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(function () { URL.revokeObjectURL(url); }, 2000);
+      });
+
+      function copy(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          return navigator.clipboard.writeText(text).catch(function () { return fallback(text); });
+        }
+        return Promise.resolve(fallback(text));
+      }
+      function fallback(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } catch (e) { /* ignorieren */ }
+        document.body.removeChild(ta);
+      }
+      Array.prototype.forEach.call(document.querySelectorAll('[data-copy]'), function (btn) {
+        btn.addEventListener('click', function () {
+          var target = document.getElementById(btn.getAttribute('data-copy'));
+          var old = btn.textContent;
+          copy(target.textContent);
+          btn.textContent = 'Kopiert';
+          setTimeout(function () { btn.textContent = old; }, 1400);
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>IPA-Palette</title>
+  <link rel="icon" type="image/png" href="assets/icon-32.png">
+  <link rel="stylesheet" href="taskpane.css">
+  <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+</head>
+<body>
+  <h1 class="sr-only">IPA-Palette</h1>
+
+  <header class="top">
+    <div class="search">
+      <svg class="search-icon" viewBox="0 0 20 20" width="16" height="16" aria-hidden="true" focusable="false">
+        <circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        <path d="M12.8 12.8 17 17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+      <input id="search" type="search" placeholder="Name, Symbol, X-SAMPA, U+0283"
+             aria-label="Symbole suchen (Name, Symbol, X-SAMPA-Code oder Unicode-Nummer)"
+             autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+    </div>
+  </header>
+
+  <main id="main">
+    <p id="notice" class="notice" role="status" hidden>Browser-Modus – Klick kopiert</p>
+
+    <section class="tools" aria-label="Eingabehilfen">
+      <div class="tool">
+        <div class="tool-head">
+          <label for="xs-input" class="lbl">X-SAMPA Schnelleingabe</label>
+          <button type="button" id="xs-help" class="help" aria-expanded="false" aria-controls="xs-cheat"
+                  title="Kurzübersicht der wichtigsten X-SAMPA-Codes ein-/ausblenden" aria-label="X-SAMPA-Hilfe ein- oder ausblenden">?</button>
+        </div>
+        <div class="xs-row">
+          <input id="xs-input" type="text" placeholder="z. B. &quot;hal@" aria-describedby="xs-preview"
+                 autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text">
+          <button type="button" id="xs-insert" class="btn primary" title="Umgewandelten Text an der Cursorposition einfügen (Eingabetaste)">Einfügen</button>
+        </div>
+        <div id="xs-preview" class="xs-preview" aria-live="polite" aria-label="Vorschau der IPA-Umwandlung">
+          <span class="xs-arrow" aria-hidden="true">IPA</span>
+          <span id="xs-out" class="xs-out" data-empty="true">Vorschau erscheint hier</span>
+        </div>
+        <div id="xs-cheat" class="cheat" hidden></div>
+      </div>
+
+      <div class="tool-row">
+        <div class="tool brackets">
+          <span class="lbl" id="brackets-label">Klammern</span>
+          <div class="btn-row" role="group" aria-labelledby="brackets-label" id="brackets"></div>
+        </div>
+        <div class="tool font">
+          <label for="font" class="lbl">Schriftart</label>
+          <select id="font" title="Schriftart für eingefügte Zeichen"></select>
+        </div>
+      </div>
+    </section>
+
+    <div id="results" hidden></div>
+    <div id="sections"></div>
+  </main>
+
+  <footer id="infobar" class="infobar">
+    <div id="info-glyph" class="info-glyph" aria-hidden="true" data-empty="true">–</div>
+    <div class="info-text">
+      <div id="info-name" class="info-name">Symbol berühren oder fokussieren, um Name, Unicode-Nummer und X-SAMPA-Code zu sehen.</div>
+      <div class="info-meta">
+        <span id="info-cp" class="info-cp"></span>
+        <span id="info-xs" class="info-xs"></span>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="ipa-data.js"></script>
+  <script src="taskpane.js"></script>
+</body>
+</html>
