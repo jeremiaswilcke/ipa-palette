@@ -351,3 +351,6 @@ table.ctable { border-collapse: separate; border-spacing: 0; min-width: 100%; bo
   main { padding-left: 14px; padding-right: 14px; }
   .top { padding-left: 14px; padding-right: 14px; }
 }
+
+/* Mac- und Windows-App: Schriftart legt das Zielprogramm fest */
+[data-mode="native"] .tool.font { display: none; }

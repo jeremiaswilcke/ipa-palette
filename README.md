@@ -6,6 +6,15 @@ Funktionen: Symbolgruppen (Häufig, Konsonanten- und Vokaltabelle, Affrikaten, D
 
 Es sind nur statische Dateien, kein Build-Schritt, keine Abhängigkeiten.
 
+## Apps für Mac und Windows (jedes Programm)
+
+Neben dem Word-Add-in gibt es die Palette als eigene App. Sie schwebt über allen Fenstern und tippt das Zeichen ins zuletzt aktive Programm, also auch in WordCraft, Pages, LibreOffice, Mail oder den Browser. Klammern umschließen markierten Text.
+
+- **Mac:** `IPA-Palette-x.y.z.dmg` aus den [Releases](https://github.com/jeremiaswilcke/ipa-palette/releases/latest) öffnen, App in „Programme“ ziehen, starten. Beim ersten Start **Bedienungshilfen** erlauben (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen). Ein-/ausblenden mit **⌃⌥I** oder über „ə“ in der Menüleiste. Signiert und notarisiert.
+- **Windows:** `IPA-Palette.exe` aus den Releases laden und starten, keine Installation nötig. Ein-/ausblenden mit **Strg+Alt+I** oder über das Symbol im Infobereich. Die Datei ist nicht signiert: SmartScreen fragt beim ersten Start, dann **Weitere Informationen → Trotzdem ausführen**.
+
+Bauen: `mac/build.sh` (signiert + notarisiert, `--ohne-notarisierung` zum Testen), `windows/build-remote.sh` (baut per SSH auf einem Windows-PC mit .NET 8 SDK). Version in `VERSION`.
+
 ## Hosting (GitHub Pages)
 
 1. Neues **öffentliches** Repository `ipa-palette` anlegen.

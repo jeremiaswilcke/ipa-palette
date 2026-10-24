@@ -82,14 +82,26 @@
   /* ------------------------------------------------------------------ */
   /* Modus: Word oder Browser                                            */
   /* ------------------------------------------------------------------ */
-  var mode = 'init';   // 'init' | 'word' | 'browser'
+  var mode = 'init';   // 'init' | 'word' | 'browser' | 'native'
   function setMode(m) {
     mode = m;
     document.documentElement.setAttribute('data-mode', m);
     $('notice').hidden = m !== 'browser';
   }
 
+  /* Mac-App (WKWebView) und Windows-App (WebView2) tippen selbst ins zuletzt aktive Programm. */
+  function nativeBridge() {
+    var w = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.ipa;
+    if (w) return function (msg) { w.postMessage(msg); };
+    var c = window.chrome && window.chrome.webview;
+    if (c) return function (msg) { c.postMessage(msg); };
+    return null;
+  }
+  var postNative = nativeBridge();
+  window.ipaNativeToast = function (prefix, text) { toast(prefix, text); };
+
   function initOffice() {
+    if (postNative) { setMode('native'); return; }
     if (typeof Office === 'undefined' || !Office || typeof Office.onReady !== 'function') {
       setMode('browser');
       return;
@@ -223,12 +235,20 @@
     });
   }
 
+  /* back: Anzahl Zeichen, um die der Cursor danach nach links soll (Klammern) */
+  function deliverNative(text, back) {
+    postNative({ text: text, back: back || 0 });
+    return Promise.resolve(true);
+  }
+
   function insertText(text) {
+    if (mode === 'native') return deliverNative(text, 0);
     var font = currentFont();
     return deliver(function () { return wordInsert(text, font); }, text);
   }
 
   function insertBrackets(b) {
+    if (mode === 'native') { postNative({ open: b.open, close: b.close }); return Promise.resolve(true); }
     var font = currentFont();
     return deliver(function () { return wordBrackets(b.open, b.close, font); }, b.open + b.close);
   }
