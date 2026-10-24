@@ -13,6 +13,10 @@ Neben dem Word-Add-in gibt es die Palette als eigene App. Sie schwebt über alle
 - **Mac:** `IPA-Palette-x.y.z.dmg` aus den [Releases](https://github.com/jeremiaswilcke/ipa-palette/releases/latest) öffnen, App in „Programme“ ziehen, starten. Beim ersten Start **Bedienungshilfen** erlauben (Systemeinstellungen → Datenschutz & Sicherheit → Bedienungshilfen). Ein-/ausblenden mit **⌃⌥I** oder über „ə“ in der Menüleiste. Signiert und notarisiert.
 - **Windows:** `IPA-Palette-Setup-x.y.z.exe` aus den Releases laden und ausführen (ohne Administratorrechte, Startmenü, auf Wunsch Autostart, installiert fehlende WebView2-Laufzeit mit). Ein-/ausblenden mit **Strg+Alt+I** oder über das Symbol im Infobereich. Das Setup ist nicht signiert: SmartScreen fragt einmal, dann **Weitere Informationen → Trotzdem ausführen**. Im S-Modus geht nur die Store-Version.
 
+**Updates:** Beide Apps fragen 8 s nach dem Start und dann alle 6 h `api.github.com/repos/jeremiaswilcke/ipa-palette/releases/latest` ab und bieten eine neuere Version an (Jetzt aktualisieren / Später / Diese Version überspringen; von Hand über „Nach Updates suchen …“). Mac: lädt die DMG, prüft die Signatur (Team 7MN88MYAVL, Bundle-ID), tauscht die App nach dem Beenden aus und startet sie neu. Windows: lädt das Setup, startet es mit `/SILENT /neustart=1`, das Setup startet die App danach wieder. Die Release-Notizen erscheinen im Update-Dialog – kurz und für Nutzer schreiben. Die Release-Dateien müssen `IPA-Palette-x.y.z.dmg` und `IPA-Palette-Setup-x.y.z.exe` heißen. Testpfad: `--als-version 1.0.0 --update-sofort`.
+
+Das Setup-Fenster ist gestaltet (Inno Setup 6.7: Hintergrund, Bild links, hell/dunkel); die Bilder entstehen mit `windows/installer/art/render.sh` aus `art.html`, der DMG-Hintergrund aus `mac/dmg/background.html`.
+
 Bauen: `mac/build.sh` (Installations-DMG, signiert + notarisiert, `--ohne-notarisierung` zum Testen), `windows/build-setup.sh` (Setup per Inno Setup, baut per SSH auf einem Windows-PC mit .NET 8 SDK), `windows/build-remote.sh` (einzelne .exe), `windows/build-msix.sh` (Store). Version in `VERSION`.
 
 ## Hosting (GitHub Pages)

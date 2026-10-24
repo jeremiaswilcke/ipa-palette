@@ -19,6 +19,8 @@ Die App schwebt über allen Fenstern und tippt das Zeichen dort, wo euer Cursor 
 
 **Windows:** **IPA-Palette-Setup-….exe** herunterladen und ausführen, Administratorrechte braucht es nicht. Warnt Windows („Der Computer wurde durch Windows geschützt“): **Weitere Informationen → Trotzdem ausführen**. Danach im Startmenü **IPA-Palette** öffnen. Ein- und ausblenden mit **Strg+Alt+I** oder über das Symbol unten rechts im Infobereich. Im **S-Modus** lässt Windows nur Store-Apps zu – bis die Palette im Store ist, die Browser-Palette nehmen (siehe Linux).
 
+**Updates:** Ab Version 1.0.2 meldet die App neue Versionen von selbst („IPA-Palette … ist da“). Ein Klick auf **Jetzt aktualisieren** lädt sie, installiert sie und startet die Palette neu. Von Hand geht es über das Menü der App (**ə** in der Menüleiste bzw. das Symbol im Infobereich) → **Nach Updates suchen …**. Wer noch 1.0.0 oder 1.0.1 hat, installiert 1.0.2 einmal selbst darüber.
+
 > **Merksatz:** Diakritika (z. B. ◌̥ für stimmlos) immer **nach** dem Buchstaben klicken, sie setzen sich auf das Zeichen davor: erst **b**, dann **◌̥** ergibt **b̥**.
 
 Wer lieber direkt in Word arbeitet, nimmt das Word-Add-in:
