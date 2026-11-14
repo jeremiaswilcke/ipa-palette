@@ -156,7 +156,7 @@ sealed class PaletteForm : Form
         Insert(t.GetString() ?? "", back);
     }
 
-    /// Klammern um die Markierung im Zielprogramm; ohne Markierung leere Klammern mit Cursor dazwischen.
+    /// Klammern um die Markierung im Zielprogramm; ohne Markierung nur die öffnende Klammer (Palette merkt sich die schließende).
     /// Die Markierung wird per Strg+C geholt, die Zwischenablage danach wiederhergestellt.
     void Wrap(string open, string close)
     {
@@ -177,8 +177,9 @@ sealed class PaletteForm : Form
                 try { if (saved != null) Clipboard.SetDataObject(copy, true); } catch { }
                 if (sel.Length == 0 || sel.Length > 2000)
                 {
-                    Native.TypeUnicode(open + close);
-                    for (int i = 0; i < close.Length; i++) Native.TapKey(Native.VK_LEFT);
+                    // Nur die öffnende Klammer; die schließende kommt beim nächsten Klick in der Palette.
+                    Native.TypeUnicode(open);
+                    _ = web.CoreWebView2?.ExecuteScriptAsync("window.ipaKlammerOffen && window.ipaKlammerOffen()");
                 }
                 else Native.TypeUnicode(open + sel + close);
             });

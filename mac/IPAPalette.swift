@@ -188,7 +188,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
         }
     }
 
-    /// Klammern um die Markierung im Zielprogramm; ohne Markierung leere Klammern mit Cursor dazwischen.
+    /// Klammern um die Markierung im Zielprogramm; ohne Markierung nur die öffnende Klammer (Palette merkt sich die schließende).
     /// Die Markierung wird per ⌘C geholt, die Zwischenablage danach wiederhergestellt.
     func wrap(_ open: String, _ close: String) {
         guard AXIsProcessTrusted(), let app = target, !app.isTerminated else {
@@ -212,9 +212,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, WKScriptMessageHandler
                     pb.clearContents()
                     if !saved.isEmpty { pb.writeObjects(saved) }
                 }
-                if selected.isEmpty || selected.contains("\n") && selected.count > 2000 {
-                    Self.type(open + close, pid: pid)
-                    for _ in 0..<close.count { Self.key(CGKeyCode(kVK_LeftArrow), pid: pid) }
+                if selected.isEmpty || selected.count > 2000 {
+                    // Nur die öffnende Klammer; die schließende kommt beim nächsten Klick in der Palette.
+                    // (Cursor per Pfeiltaste zurücksetzen ignoriert Word am Mac.)
+                    Self.type(open, pid: pid)
+                    self.web.evaluateJavaScript("window.ipaKlammerOffen && window.ipaKlammerOffen()")
                 } else {
                     Self.type(open + selected + close, pid: pid)
                 }

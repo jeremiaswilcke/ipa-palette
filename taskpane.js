@@ -190,7 +190,7 @@
   }
 
   async function wordBrackets(open, close, fontName) {
-    await Word.run(async function (ctx) {
+    return Word.run(async function (ctx) {
       var sel = ctx.document.getSelection();
       sel.load('text');
       await ctx.sync();
@@ -200,14 +200,16 @@
         var b = sel.insertText(close, 'End');
         if (fontName) { a.font.name = fontName; b.font.name = fontName; }
         sel.select('End');
-      } else {
-        // Leere Auswahl: beide Klammern einfuegen, Cursor dazwischen
-        var r1 = sel.insertText(open, 'Replace');
-        var r2 = r1.insertText(close, 'After');
-        if (fontName) { r1.font.name = fontName; r2.font.name = fontName; }
-        r1.select('End');
+        await ctx.sync();
+        return 'umklammert';
       }
+      // Leere Auswahl: nur die oeffnende Klammer; die schliessende kommt beim naechsten Klick.
+      // (Cursor zwischen zwei Klammern setzen klappt in Word Online und am Mac nicht verlaesslich.)
+      var r1 = sel.insertText(open, 'Replace');
+      if (fontName) r1.font.name = fontName;
+      r1.select('End');
       await ctx.sync();
+      return 'offen';
     });
   }
 
@@ -247,10 +249,46 @@
     return deliver(function () { return wordInsert(text, font); }, text);
   }
 
+  /* Offene Klammer: [ wurde geschrieben, ] folgt beim naechsten Klick auf eine Klammer */
+  var offeneKlammer = null, letzteKlammer = null;
+  function klammerZeigen() {
+    var btns = document.querySelectorAll('#brackets button');
+    for (var i = 0; i < btns.length; i++) {
+      var b = D.brackets.filter(function (x) { return x.id === btns[i].getAttribute('data-bracket'); })[0];
+      var auf = !!offeneKlammer && offeneKlammer.id === b.id;
+      btns[i].classList.toggle('offen', auf);
+      btns[i].textContent = auf ? b.close + ' schließen' : b.label;
+      btns[i].title = auf ? 'Klammer schließen' : b.name + ' – umklammert markierten Text oder öffnet die Klammer; nach den Lauten nochmal klicken';
+    }
+  }
+  function klammerOffen(b) {
+    offeneKlammer = b || null;
+    klammerZeigen();
+    if (b) toast('Laute einfügen, dann ', b.close + ' schließen');
+  }
+  window.ipaKlammerOffen = function () { klammerOffen(letzteKlammer); };
+
   function insertBrackets(b) {
+    if (offeneKlammer) {
+      var zu = offeneKlammer.close;
+      klammerOffen(null);
+      return insertText(zu);
+    }
+    letzteKlammer = b;
+    // Native App: holt die Markierung; ist keine da, schreibt sie nur die oeffnende Klammer
+    // und meldet das ueber window.ipaKlammerOffen() zurueck.
     if (mode === 'native') { postNative({ open: b.open, close: b.close }); return Promise.resolve(true); }
-    var font = currentFont();
-    return deliver(function () { return wordBrackets(b.open, b.close, font); }, b.open + b.close);
+    if (mode === 'word') {
+      var font = currentFont();
+      var ergebnis = null;
+      return deliver(function () {
+        return wordBrackets(b.open, b.close, font).then(function (r) { ergebnis = r; });
+      }, b.open + b.close).then(function (ok) {
+        if (ok && ergebnis === 'offen') klammerOffen(b);
+        return ok;
+      });
+    }
+    return deliver(null, b.open + b.close);
   }
 
   /* ------------------------------------------------------------------ */

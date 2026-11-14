@@ -354,3 +354,6 @@ table.ctable { border-collapse: separate; border-spacing: 0; min-width: 100%; bo
 
 /* Mac- und Windows-App: Schriftart legt das Zielprogramm fest */
 [data-mode="native"] .tool.font { display: none; }
+
+/* Offene Klammer: wartet auf den Klick zum Schliessen */
+.btn-row .btn.offen { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); font-family: inherit; font-size: 14px; font-weight: 600; }
